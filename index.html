@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Op.Lab Badge Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #ffffff;
+            color: #000000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            transition: background-color 0.6s ease, color 0.6s ease;
+        }
+
+        body.dark-mode {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: #ffffff;
+            padding: 60px;
+            box-shadow: 0 0 0 1px #000;
+            transition: background-color 0.6s ease, box-shadow 0.6s ease;
+        }
+
+        body.dark-mode .container {
+            background: #000000;
+            box-shadow: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 30px;
+            }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #000;
+        }
+
+        body.dark-mode header {
+            border-bottom: 1px solid #fff;
+        }
+
+        h1 {
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -2px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body.dark-mode h1 {
+            color: #ffffff;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2.2em;
+            }
+        }
+
+        .org-name {
+            font-size: 0.7em;
+            font-weight: 400;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 0.65em;
+            opacity: 0.6;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        /* Page management */
+        .page {
+            display: none;
+            width: 100%;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Loading screen */
+        #loadingScreen {
+            display: none;
+            width: 100%;
+            text-align: center;
+            padding: 100px 0;
+        }
+
+        #loadingScreen.active {
+            display: block;
+        }
+
+        .loading-text {
+            font-size: 0.7em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            opacity: 0.7;
+        }
+
+        .loading-bar {
+            width: 100%;
+            height: 2px;
+            background: #e0e0e0;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 30%;
+            background: #000;
+            animation: loading 1.5s ease-in-out 2;
+        }
+
+        @keyframes loading {
+            0% { left: -30%; }
+            100% { left: 100%; }
+        }
+
+        .loading-status {
+            font-size: 0.65em;
+            opacity: 0.5;
+            letter-spacing: 1px;
+        }
+
+        .loading-steps {
+            margin-top: 30px;
+            text-align: left;
+            font-size: 0.65em;
+            line-height: 1.8;
+        }
+
+        .loading-step {
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+
+        .loading-step.active {
+            opacity: 1;
+        }
+
+        .loading-step::before {
+            content: '> ';
+            margin-right: 5px;
+        }
+
+        /* Step headers */
+        .step-header {
+            font-size: 0.7em;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #000;
+            text-transform: uppercase;
+            transition: border-color 0.6s ease, color 0.6s ease;
+        }
+
+        body.dark-mode .step-header {
+            border-bottom: 1px solid #fff;
+            color: #ffffff;
+        }
+
+        /* Input groups */
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 0.75em;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .input-group label::before {
+            content: attr(data-num) ' ';
+            margin-right: 5px;
+        }
+
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 0 0 8px 0;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #000;
+            color: #000;
+            font-family: 'Courier New', monospace;
+            font-size: 1em;
+            outline: none;
+            line-height: 1.2;
+        }
+
+        .input-group input[type="text"]::placeholder {
+            color: #999;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '▼';
+            position: absolute;
+            right: 0;
+            bottom: 8px;
+            pointer-events: none;
+            font-size: 0.6em;
+            opacity: 0.5;
+        }
+
+        .input-group select {
+            width: 100%;
+            padding: 0 0 8px 0;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #000;
+            color: #000;
+            font-family: 'Courier New', monospace;
+            font-size: 1em;
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            line-height: 1.2;
+        }
+
+        /* Upload area */
+        .upload-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .upload-section label {
+            display: block;
+            margin-bottom: 20px;
+            font-size: 0.75em;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .upload-area {
+            border: 1px solid #000;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            position: relative;
+        }
+
+        @media (max-width: 600px) {
+            .upload-area {
+                padding: 40px 20px;
+            }
+        }
+
+        .upload-area:hover {
+            background: #f5f5f5;
+        }
+
+        .upload-area.has-image {
+            padding: 0;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            display: none;
+        }
+
+        #imagePreview.show {
+            display: block;
+        }
+
+        .upload-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 15px;
+            border: 1px solid #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #e0e0e0;
+        }
+
+        .upload-text {
+            font-size: 0.8em;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 0.65em;
+            opacity: 0.5;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Badge Preview */
+        .badge-preview-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .badge-preview-page .step-header {
+            width: 100%;
+        }
+
+        #badgeCanvas {
+            border: 1px solid #000;
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 30px;
+            transition: border-color 0.6s ease;
+        }
+
+        body.dark-mode #badgeCanvas {
+            border: 1px solid #fff;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 0;
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid #000;
+            flex-direction: column;
+            transition: border-color 0.6s ease;
+        }
+
+        body.dark-mode .button-group {
+            border-top: 1px solid #fff;
+        }
+
+        button {
+            padding: 15px 30px;
+            background: #d0d0d0;
+            border: none;
+            color: #000;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        button::after {
+            content: ' →';
+            margin-left: 10px;
+        }
+
+        button:hover {
+            background: #b0b0b0;
+        }
+
+        button.secondary {
+            background: transparent;
+            border: 1px solid #000;
+            margin-top: 10px;
+            transition: all 0.6s ease;
+        }
+
+        body.dark-mode button.secondary {
+            border: 1px solid #fff;
+            color: #fff;
+        }
+
+        button.secondary::after {
+            content: '';
+            margin-left: 0;
+        }
+
+        button.secondary:hover {
+            background: #f5f5f5;
+        }
+
+        body.dark-mode button.secondary:hover {
+            background: #1a1a1a;
+        }
+
+        .transmission {
+            text-align: center;
+            padding: 20px;
+            opacity: 0.3;
+            font-size: 0.65em;
+            margin-top: 40px;
+            transition: color 0.6s ease;
+        }
+
+        body.dark-mode .transmission {
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>O.P.Lab</h1>
+            <div class="org-name">OFFICE OF PARTICIPATORY LABORATORIES</div>
+            <div class="subtitle">E.01 - / BADGE GENERATION INTERFACE / - V.01</div>
+        </header>
+
+        <!-- Step 1: Input Form -->
+        <div id="page1" class="page active">
+            <div class="step-header">STEP 1: ENTER PARTICIPANT INFORMATION</div>
+            
+            <div class="input-group">
+                <label data-num="01">NAME:</label>
+                <input type="text" id="nameInput" placeholder="" maxlength="30">
+            </div>
+
+            <div class="input-group">
+                <label data-num="02">ROLE:</label>
+                <div class="select-wrapper">
+                    <select id="titleInput">
+                        <option value="RESEARCH DESIGNER">RESEARCH DESIGNER</option>
+                        <option value="STUDIO TECHNICIAN">STUDIO TECHNICIAN</option>
+                        <option value="LAB COORDINATOR">LAB COORDINATOR</option>
+                        <option value="CREATIVE SPECIALIST">CREATIVE SPECIALIST</option>
+                        <option value="DESIGN RESEARCHER">DESIGN RESEARCHER</option>
+                        <option value="VISUAL OPERATIVE">VISUAL OPERATIVE</option>
+                        <option value="STUDIO FACILITATOR">STUDIO FACILITATOR</option>
+                        <option value="PRACTICE OBSERVER">PRACTICE OBSERVER</option>
+                        <option value="ACTIVE PARTICIPANT">ACTIVE PARTICIPANT</option>
+                        <option value="SYSTEMS ARTIST">SYSTEMS ARTIST</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <label>PROFILE IMAGE:</label>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="imageInput" accept="image/*">
+                    <div id="uploadText">
+                        <div class="upload-icon">+</div>
+                        <div class="upload-text">Click to Upload</div>
+                        <div class="upload-hint">Acceptable Formats: JPG or PNG</div>
+                    </div>
+                    <img id="imagePreview" alt="Preview">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="generateBtn">Generate Badge</button>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen">
+            <div class="loading-text">GENERATING BADGE</div>
+            <div class="loading-bar"></div>
+            <div class="loading-status">PROCESSING...</div>
+            <div class="loading-steps">
+                <div class="loading-step" data-step="1">VALIDATING PARTICIPANT DATA</div>
+                <div class="loading-step" data-step="2">PROCESSING PROFILE IMAGE</div>
+                <div class="loading-step" data-step="3">ASSIGNING LAB NUMBER</div>
+                <div class="loading-step" data-step="4">RENDERING VISUAL ELEMENTS</div>
+                <div class="loading-step" data-step="5">FINALIZING CREDENTIALS</div>
+            </div>
+        </div>
+
+        <!-- Step 2: Badge Preview -->
+        <div id="page2" class="page">
+            <div class="badge-preview-page">
+                <div class="step-header">STEP 2: REVIEW AND DOWNLOAD</div>
+                <canvas id="badgeCanvas" width="1200" height="800"></canvas>
+                <div class="button-group">
+                    <button id="downloadBtn">Download Image</button>
+                    <button id="backBtn" class="secondary">← Modify Badge</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="transmission">
+            [ IDENTIFICATION BADGES ARE FOR OFFICIAL USE ONLY.
+            RECREATION OR MANIPULATION IS STRICTLY PROHIBITED. ]
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('badgeCanvas');
+        const ctx = canvas.getContext('2d');
+        const nameInput = document.getElementById('nameInput');
+        const titleInput = document.getElementById('titleInput');
+        const imageInput = document.getElementById('imageInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const uploadText = document.getElementById('uploadText');
+        const imagePreview = document.getElementById('imagePreview');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const backBtn = document.getElementById('backBtn');
+        
+        const page1 = document.getElementById('page1');
+        const page2 = document.getElementById('page2');
+
+        let uploadedImage = null;
+        let idNumber = generateRandomID(); // Auto-generate random ID
+
+        // Generate random ID
+        function generateRandomID() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Handle image upload
+        uploadArea.addEventListener('click', () => {
+            imageInput.click();
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        uploadedImage = img;
+                        imagePreview.src = event.target.result;
+                        imagePreview.classList.add('show');
+                        uploadText.style.display = 'none';
+                        uploadArea.classList.add('has-image');
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Generate badge
+        function generateBadge() {
+            // Load background template
+            const bgImage = new Image();
+            bgImage.onload = function() {
+                // Clear canvas and draw background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+
+                // Draw photo in left box - centered in the frame
+                const photoX = 70;
+                const photoY = 45;
+                const photoWidth = 440;
+                const photoHeight = 430;
+                
+                if (uploadedImage) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(photoX, photoY, photoWidth, photoHeight);
+                    ctx.closePath();
+                    ctx.clip();
+                    
+                    const scale = Math.max(photoWidth / uploadedImage.width, photoHeight / uploadedImage.height);
+                    const scaledWidth = uploadedImage.width * scale;
+                    const scaledHeight = uploadedImage.height * scale;
+                    const offsetX = photoX + (photoWidth - scaledWidth) / 2 - 15;
+                    const offsetY = photoY + (photoHeight - scaledHeight) / 2 - 15;
+                    
+                    ctx.drawImage(uploadedImage, offsetX, offsetY, scaledWidth, scaledHeight);
+                    ctx.restore();
+                }
+
+                // Set up fonts
+                ctx.fillStyle = '#000';
+                ctx.textAlign = 'left';
+
+                // Draw name (bottom left) - dynamic font sizing based on length
+                const name = nameInput.value.toUpperCase() || '';
+                const nameParts = name.split(' ');
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ') || '';
+                
+                // Calculate dynamic font size based on longest line
+                const longestLine = firstName.length > lastName.length ? firstName : lastName;
+                let nameFontSize = 50;
+                
+                if (longestLine.length > 12) {
+                    nameFontSize = 40;
+                } else if (longestLine.length > 10) {
+                    nameFontSize = 45;
+                }
+                
+                // Further adjust if combined name is very long
+                if (name.length > 20) {
+                    nameFontSize = Math.max(35, nameFontSize - 5);
+                }
+                
+                ctx.font = `bold ${nameFontSize}px Helvetica, Arial, sans-serif`;
+                ctx.letterSpacing = '0px';
+                ctx.fillText(firstName, 90, 565);
+                
+                if (lastName) {
+                    ctx.fillText(lastName, 90, 565 + nameFontSize + 5);
+                }
+
+                // Draw lab number (middle section) - below the "LAB NUMBER" label
+                ctx.font = 'bold 26px Helvetica, Arial, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.letterSpacing = '0px';
+                ctx.fillText(idNumber, 550, 610);
+
+                // Draw operative role (middle section) - below the "OPERATIVE ROLE:" label
+                ctx.font = 'bold 26px Helvetica, Arial, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.letterSpacing = '0px';
+                const title = titleInput.value.toUpperCase();
+                ctx.fillText(title, 845, 610);
+
+                // Draw lab number (bottom right - large) - monospace, lower in corner
+                ctx.font = 'normal 50px Courier New, monospace';
+                ctx.textAlign = 'right';
+                ctx.letterSpacing = '0px';
+                ctx.fillText(idNumber, 1120, 745);
+
+                // Draw date issued with label in the box
+                ctx.font = '14px Courier New, monospace';
+                ctx.textAlign = 'center';
+                ctx.letterSpacing = '0px';
+                const today = new Date();
+                const dateStr = `DATE ISSUED: ${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}.${today.getFullYear()}`;
+                ctx.fillText(dateStr, 852, 486);
+            };
+            
+            // Use relative path for Vercel deployment
+            bgImage.src = './Frame_2.png';
+        }
+
+        // Download badge
+        function downloadBadge() {
+            const link = document.createElement('a');
+            const name = nameInput.value || 'operative';
+            link.download = `oplab-badge-${name.toLowerCase().replace(/\s+/g, '-')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Page navigation
+        function showPage(pageNumber) {
+            page1.classList.remove('active');
+            page2.classList.remove('active');
+            const loadingScreen = document.getElementById('loadingScreen');
+            loadingScreen.classList.remove('active');
+            
+            if (pageNumber === 1) {
+                page1.classList.add('active');
+                document.body.classList.remove('dark-mode');
+            } else if (pageNumber === 'loading') {
+                loadingScreen.classList.add('active');
+                
+                // Animate loading steps
+                const steps = document.querySelectorAll('.loading-step');
+                steps.forEach((step, index) => {
+                    setTimeout(() => {
+                        step.classList.add('active');
+                    }, index * 400);
+                });
+                
+                // Show page 2 after loading
+                setTimeout(() => {
+                    loadingScreen.classList.remove('active');
+                    steps.forEach(step => step.classList.remove('active'));
+                    page2.classList.add('active');
+                    document.body.classList.add('dark-mode');
+                }, 2800);
+            } else {
+                page2.classList.add('active');
+                document.body.classList.add('dark-mode');
+            }
+            
+            window.scrollTo(0, 0);
+        }
+
+        // Event listeners
+        generateBtn.addEventListener('click', () => {
+            showPage('loading');
+            // Generate badge during loading
+            setTimeout(() => {
+                generateBadge();
+            }, 500);
+        });
+
+        downloadBtn.addEventListener('click', downloadBadge);
+        
+        backBtn.addEventListener('click', () => {
+            showPage(1);
+        });
+    </script>
+</body>
+</html>
